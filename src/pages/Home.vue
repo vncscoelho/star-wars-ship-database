@@ -11,6 +11,7 @@
       v-for="(item, index) in data.starships"
       :key="`starship-${index}`"
       :data="item"
+      :target-distance="data.targetDistance"
     />
   </main>
 </template>
