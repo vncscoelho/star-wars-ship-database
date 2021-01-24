@@ -6,3 +6,6 @@ Steps to run:
 
 Steps to build: 
 - npm run build
+
+Live preview:
+https://frosty-goldberg-8ea392.netlify.app/
