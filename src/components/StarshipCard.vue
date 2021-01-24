@@ -29,7 +29,11 @@
         </li>
         <li class="starship-card__item">
           <span class="starship-card__label">Supplies for</span>
-          <span class="starship-card__data">{{ data.consumables }}</span>
+          <span
+            v-if="defaultedConsumables"
+            class="starship-card__data"
+          >{{ defaultedConsumables }}</span>
+          <span v-else>-</span>
         </li>
         <li class="starship-card__item">
           <span class="starship-card__label">MGLT before resupply</span>
@@ -71,10 +75,23 @@ const defaultedMglt = computed(() => {
   return props.data.MGLT;
 });
 
+const defaultedConsumables = computed(() => {
+  if (props.data.consumables === 'unknown') {
+    return null;
+  }
+
+  return props.data.consumables;
+});
+
 const consumableInHours = computed(() => {
   const [time, unit] = props.data.consumables.split` `;
   const dateForward = dayjs().add(time, unit);
   const dateNow = dayjs();
+
+  if (!defaultedConsumables.value) {
+    return null;    
+  }
+
   // Milliseconds -> Seconds -> Minutes -> Hours
   return Math.floor(((dateForward.diff(dateNow) / 1000) / 60) / 60);
 });
