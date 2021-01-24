@@ -1,5 +1,6 @@
 <template>
   <main class="home">
+    <loading-indicator :show="data.isLoading" />
     <header class="home__header">
       <h2 class="home__title">
         Starship Distance Calculator
@@ -22,7 +23,6 @@
         :target-distance="data.targetDistance"
       />
     </section>
-    <loading-indicator v-if="isLoading" />
   </main>
 </template>
 
@@ -36,6 +36,7 @@ const swapi = inject('swapi');
 const data = reactive({
   targetDistance: 1000,
   starships: [],
+  isLoading: true,
 });
 
 const formattedDistance = computed({
@@ -50,13 +51,13 @@ const formattedDistance = computed({
 
 
 const getAllStarships = (page = 1) => swapi(`/starships/?page=${page}`)
-  .then(response => {
+  .then(async response => {
     const { results, next } = response.data;
     data.starships.push(...results);
     if (next) {
-      getAllStarships(++page);
+      await getAllStarships(++page);
     }
-  });
+  }).finally(() => data.isLoading = false);
 
   getAllStarships();
 </script>

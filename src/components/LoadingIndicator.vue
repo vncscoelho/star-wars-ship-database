@@ -1,14 +1,34 @@
 <template>
-  <div class="loading-indicator">
-    <div class="loading-indicator__text">
-      <span>LOADING___LOADING___</span>
-      <span>LOADING___LOADING___</span>
+  <transition name="fade">
+    <div
+      v-if="props.show"
+      class="loading-indicator"
+    >
+      <div class="loading-indicator__text">
+        <span>LOADING___LOADING___</span>
+        <span>LOADING___LOADING___</span>
+      </div>
     </div>
-  </div>
+  </transition>
 </template>
 
+<script setup>
+const props = defineProps({
+  show: false
+});
+</script>
 
 <style lang="scss">
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
 .loading-indicator {
   position: fixed;
   top: 0;
@@ -16,7 +36,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1;
+  z-index: 5;
   width: 100%;
   height: 100%;
   background-color: #eee;
