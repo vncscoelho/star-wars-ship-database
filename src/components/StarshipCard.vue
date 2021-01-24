@@ -5,21 +5,39 @@
         {{ data.name }}
       </h3>
       <ul class="starship-card__features">
-        <li>
-          <span class="starship-card__label">Stops until target</span>
-          <span class="starship-card__data">{{ stopsBeforeReachingTarget }} stops</span>
+        <li
+          class="starship-card__item starship-card__item--main"
+          :class="{ 
+            'starship-card__item--animating': state.animate,
+            'starship-card__item--no-mglt-info': !defaultedMglt
+          }"
+        >
+          <span class="starship-card__label">Stops until {{ props.targetDistance }} MGLT</span>
+          <span
+            v-if="defaultedMglt"
+            class="starship-card__data"
+          >{{ stopsBeforeReachingTarget }} stops</span>
+          <span v-else>-</span>
         </li>
-        <li>
+        <li class="starship-card__item">
           <span class="starship-card__label">Speed</span>
-          <span class="starship-card__data">{{ data.MGLT }} MGLT/h</span>
+          <span
+            v-if="defaultedMglt"
+            class="starship-card__data"
+          >{{ defaultedMglt }} MGLT/h</span>
+          <span v-else>-</span>
         </li>
-        <li>
+        <li class="starship-card__item">
           <span class="starship-card__label">Supplies for</span>
           <span class="starship-card__data">{{ data.consumables }}</span>
         </li>
-        <li>
+        <li class="starship-card__item">
           <span class="starship-card__label">MGLT before resupply</span>
-          <span class="starship-card__data">{{ mgltBeforeRestock }} MGLT</span>
+          <span
+            v-if="defaultedMglt"
+            class="starship-card__data"
+          >{{ mgltBeforeRestock }} MGLT</span>
+          <span v-else>-</span>
         </li>
       </ul>
     </template>
@@ -27,7 +45,7 @@
 </template>
 
 <script setup>
-import { defineProps, computed } from 'vue';
+import { defineProps, computed, watch, reactive } from 'vue';
 import dayjs from 'dayjs';
 
 const props = defineProps({ 
@@ -41,6 +59,18 @@ const props = defineProps({
   }
 });
 
+let state = reactive({
+  animate: false,
+});
+
+const defaultedMglt = computed(() => {
+  if (props.data.MGLT === 'unknown') {
+    return null;
+  }
+
+  return props.data.MGLT;
+});
+
 const consumableInHours = computed(() => {
   const [time, unit] = props.data.consumables.split` `;
   const dateForward = dayjs().add(time, unit);
@@ -50,11 +80,21 @@ const consumableInHours = computed(() => {
 });
 
 const mgltBeforeRestock = computed(() => {
-  return Math.floor(consumableInHours.value / props.data.MGLT);
+  if (!defaultedMglt.value) {
+    return null;
+  }
+  return Math.floor(consumableInHours.value / defaultedMglt.value);
 });
 
 const stopsBeforeReachingTarget = computed(() => {
   return Math.floor(props.targetDistance / mgltBeforeRestock.value);
+});
+
+const changeTargetDistance = watch(props, () => {
+  state.animate = true;
+  setTimeout(() => {
+    state.animate = false;
+  }, 1000);
 });
 
 </script>
@@ -67,52 +107,74 @@ const stopsBeforeReachingTarget = computed(() => {
  box-shadow: 0 0 1em rgba(0,0,0,.1);
  transform: skewY(-2deg);
 
- &__title {
-   color: orangered;
-   font-weight: normal;
-   font-family: 'Black Ops One';
-   font-size: 2em;
-   line-height: 1;
-   text-transform: uppercase;
-   text-align: center;
- }
+  &__title {
+    color: orangered;
+    font-weight: normal;
+    font-family: 'Black Ops One';
+    font-size: 2em;
+    line-height: 1;
+    text-transform: uppercase;
+    text-align: center;
+  }
 
- &__label {
-   display: block;
-   font-size: .7em;
-   text-transform: uppercase;
- }
+  &__label {
+    display: block;
+    font-size: .7em;
+    text-transform: uppercase;
+  }
 
- &__data {
-   display: block;
-   font-weight: bold;
- }
+  &__data {
+    display: block;
+    font-weight: bold;
+  }
 
- &__features {
-   display: grid;
-   grid-template-columns: 1fr 1fr;
-   grid-gap: 1em;
-   list-style: none;
+  &__features {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 1em;
+    list-style: none;
+  }
 
-   li {
-     color: #666;
-   }
+  &__item {
+    color: #666;
 
-   li:first-of-type, li:last-of-type {
-     grid-column: span 2;
-   }
+    &:first-of-type, &:last-of-type {
+      grid-column: span 2;
+    }
 
-   li:first-of-type {
-     padding: 1em;
-     color: #333;
-     background: linear-gradient(to left, #ffbba2, #FFF);
-     border-radius: 1em;
-     transform: translateX(-5%);
+    &--main {
+      padding: 1em;
+      color: #333;
+      background: linear-gradient(to left, #ffbba2, #FFF);
+      border-radius: 1em;
+      transform: translateX(-5%);
 
-     span {
-       font-weight: bold;
-     }
-   }
- }
+      span {
+        font-weight: bold;
+      }
+    }
+
+      &--animating {
+      @keyframes scale {
+        0% {
+          transform: translateX(-20px);
+        }
+        25% {
+          transform: translateX(10px);
+        }
+        50% {
+          transform: translateX(-10px);
+        }
+        100% {
+          transform: translateX(-5%);
+        }
+      }
+      animation: scale .3s ease-in-out;
+    }
+
+    &--no-mglt-info {
+      background: linear-gradient(to left, #eee, #FFF);
+    }
+  }
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
   <main class="home">
-    <loading-indicator :show="data.isLoading" />
+    <loading-indicator :show="state.isLoading" />
     <header class="home__header">
       <h2 class="home__title">
         Starship Distance Calculator
@@ -11,16 +11,19 @@
         type="text"
         minlength="10"
       >
-      <button class="home__submit">
+      <button
+        class="home__submit"
+        @click="handleCalculate"
+      >
         Calculate
       </button>
     </header>
     <section class="home__grid">
       <starship-card
-        v-for="(item, index) in data.starships"
+        v-for="(item, index) in state.starships"
         :key="`starship-${index}`"
         :data="item"
-        :target-distance="data.targetDistance"
+        :target-distance="state.targetDistance"
       />
     </section>
   </main>
@@ -33,31 +36,35 @@ import LoadingIndicator from '../components/LoadingIndicator.vue';
 
 const swapi = inject('swapi');
 
-const data = reactive({
+const state = reactive({
   targetDistance: 1000,
+  inputValue: 1000,
   starships: [],
   isLoading: true,
 });
 
 const formattedDistance = computed({
   get() {
-    return `${data.targetDistance} MGLT`;
+    return `${state.inputValue} MGLT`;
   },
   set(value) {
     let newValue = value.match(/\d/g) || [];
-    data.targetDistance = +newValue.join``;
+    state.inputValue = +newValue.join``;
   }
 });
 
+const handleCalculate = () => {
+  state.targetDistance = state.inputValue;
+};
 
 const getAllStarships = (page = 1) => swapi(`/starships/?page=${page}`)
   .then(async response => {
     const { results, next } = response.data;
-    data.starships.push(...results);
+    state.starships.push(...results);
     if (next) {
       await getAllStarships(++page);
     }
-  }).finally(() => data.isLoading = false);
+  }).finally(() => state.isLoading = false);
 
   getAllStarships();
 </script>
@@ -65,8 +72,12 @@ const getAllStarships = (page = 1) => swapi(`/starships/?page=${page}`)
 <style lang="scss">
 .home {
   &__header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
     padding: 2em;
     text-align: left;
+    background: linear-gradient(to bottom, #fefefe 60%, transparent);
 
     h2 {
       color: #666;
