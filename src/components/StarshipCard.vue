@@ -91,7 +91,7 @@ const consumableInHours = computed(() => {
   if (!defaultedConsumables.value) {
     return null;    
   }
-
+  
   // Milliseconds -> Seconds -> Minutes -> Hours
   return Math.floor(((dateForward.diff(dateNow) / 1000) / 60) / 60);
 });
@@ -100,7 +100,7 @@ const mgltBeforeRestock = computed(() => {
   if (!defaultedMglt.value) {
     return null;
   }
-  return Math.floor(consumableInHours.value / defaultedMglt.value);
+  return Math.floor(consumableInHours.value * defaultedMglt.value);
 });
 
 const stopsBeforeReachingTarget = computed(() => {
